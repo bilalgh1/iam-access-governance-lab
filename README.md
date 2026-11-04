@@ -35,7 +35,7 @@ Built on top of my previous labs ([network-admin-lab](https://github.com/bilalgh
 | # | Phase | Status |
 |---|---|---|
 | 1 | [Governance framework: RACI, default access matrix, segregation of duties](docs/01-governance-framework.md) | ✅ |
-| 2 | Active Directory: PingCastle baseline audit, group model, delegation, separate admin accounts | ⏳ |
+| 2 | Active Directory: [PingCastle baseline audit](docs/02-baseline-audit.md) ✅, group model, delegation, separate admin accounts | 🔄 |
 | 3 | Access request and joiner-mover-leaver process (PowerShell + GLPI tickets) | ⏳ |
 | 4 | Microsoft Entra ID: hybrid sync, SAML and OpenID Connect SSO | ⏳ |
 | 5 | Access review campaign, final audit, executive summary | ⏳ |
