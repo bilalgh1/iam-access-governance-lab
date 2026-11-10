@@ -40,8 +40,8 @@ The account no longer exists in the directory database in any form, and nothing 
 
 | # | Finding | Link to the baseline audit | Remediation |
 |---|---|---|---|
-| 1 | Directory changes are not fully audited: only account management events are recorded, not changes to directory objects (5136, 5137, 5141) | A-AuditDC | Advanced audit policy on domain controllers, including Directory Service Changes |
-| 2 | Every administrative action was performed with the generic built-in `Administrator` account: even with an event, *who* acted could not be established | P-AdminLogin | Named admin accounts (done in phase 2); `Administrator` kept as an emergency account |
+| 1 | Directory changes are not fully audited: only account management events are recorded, not changes to directory objects (5136, 5137, 5141) | A-AuditDC | ✅ Done: advanced audit policy and directory SACL, see [04](../04-audit-and-traceability.md) |
+| 2 | Every administrative action was performed with the generic built-in `Administrator` account: even with an event, *who* acted could not be established | P-AdminLogin | ✅ Done: named admin accounts, see [03](../03-privileged-accounts-and-delegation.md) |
 | 3 | Security logs are only stored on the DC, where they can be altered or lost | — | Forward logs in real time to a central SIEM managed separately |
 | 4 | A failed account creation (password policy) left a half-created, disabled account in a group | — | Provisioning must verify the result and roll back on failure (phase 3) |
 
