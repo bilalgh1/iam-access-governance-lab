@@ -43,7 +43,7 @@ Set-ADAccountPassword -Identity "adm0-bilal" -Reset -NewPassword (Read-Host -AsS
 |---|---|---|
 | 1 | No password vault: credentials of privileged accounts were only memorised | Password manager (KeePassXC) for every lab credential — the vault component of a PAM, at lab scale |
 | 2 | The break-glass account was never tested before being needed | Periodic test of break-glass accounts, documented |
-| 3 | Unknown local administrator password on a workstation | Windows LAPS: unique random password per machine, stored in AD, readable by authorised groups only |
+| 3 | Unknown local administrator password on a workstation | ✅ Done: Windows LAPS, see [05](../05-laps.md) |
 | 4 | Account lockout protected the admin account against password guessing, including by its owner | Expected behaviour; unlock procedure documented |
 
 ## Lessons
