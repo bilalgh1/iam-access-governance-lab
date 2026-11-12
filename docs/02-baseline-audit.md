@@ -60,7 +60,7 @@ Informative rules (0 points) also flagged: LLMNR not disabled, no NetCease, no s
 
 ### Open question
 
-`A-BackupMetadata` reports the last AD backup 39 days ago, although a system state backup with Windows Server Backup was performed 9 days before this audit. To be investigated.
+`A-BackupMetadata` reports the last AD backup 39 days ago, although a system state backup with Windows Server Backup was performed 9 days before this audit. **Resolved**: the earlier backup was most likely a VSS copy backup, which Active Directory does not record — see [06](06-dc-hardening-and-final-audit.md#7-active-directory-backup-a-backupmetadata).
 
 ## Prioritised remediation plan
 
@@ -75,3 +75,7 @@ Informative rules (0 points) also flagged: LLMNR not disabled, no NetCease, no s
 | — | Single DC, RPC coercion | 15 | Accepted and documented lab limitations |
 
 **Target: global score from 75 to about 15**, starting with privileged accounts.
+
+## After remediation
+
+Global score **75 → 20**, details in [06 — DC hardening and audit after remediation](06-dc-hardening-and-final-audit.md#result).

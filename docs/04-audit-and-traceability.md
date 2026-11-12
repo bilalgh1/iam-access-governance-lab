@@ -81,7 +81,7 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; Id=5136,5137,5141} -MaxEvent
 ## Lessons
 
 - Directory auditing needs **two keys**: the audit policy (*may* the DC log?) and the SACL (*what* to log). Either one alone produces nothing.
-- An advanced audit policy GPO **replaces** the default policy: every subcategory it does not mention becomes "No Auditing". *Directory Service Access* (event 4662, used to detect DCSync) silently went from Success to No Auditing and has to be configured explicitly.
+- An advanced audit policy GPO **replaces** the default policy: every subcategory it does not mention becomes "No Auditing". *Directory Service Access* (event 4662, used to detect DCSync) silently went from Success to No Auditing and has to be configured explicitly (done, along with six other subcategories, in [06](06-dc-hardening-and-final-audit.md#6-audit-policy-completed-a-auditdc)).
 - A GPO can be linked and applied while containing nothing useful: always check its actual content (`audit.csv`) and the effective result (`auditpol`).
 - No result a few seconds after an action does not prove that no event exists.
 
