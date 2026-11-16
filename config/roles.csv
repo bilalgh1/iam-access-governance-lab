@@ -1,0 +1,11 @@
+﻿Role,Title,Department,OU,Groups
+CEO,Directeur général,Direction,Direction,GG_Direction;GG_APP_GESCOM_Reporting;GG_APP_CRM_Lecture
+ACCOUNTANT,Comptable,Compta,Compta,GG_Compta;GG_APP_GESCOM_Ecritures;GG_APP_GESCOM_CreationFournisseurs
+FIN_MANAGER,Responsable financier,Compta,Compta,GG_Compta;GG_APP_GESCOM_Ecritures;GG_APP_GESCOM_ValidationPaiements
+HR_OFFICER,Chargé RH,RH,RH,GG_RH;GG_APP_PayFlow_Saisie
+HR_MANAGER,Responsable RH,RH,RH,GG_RH;GG_APP_PayFlow_Validation
+SALES_REP,Commercial,Commercial,Commercial,GG_Commercial;GG_APP_GESCOM_Ventes;GG_APP_CRM_Utilisateur
+SALES_MANAGER,Responsable commercial,Commercial,Commercial,GG_Commercial;GG_APP_GESCOM_Ventes;GG_APP_CRM_Utilisateur;GG_APP_CRM_ValidationRemises
+MARKETING_OFFICER,Chargé marketing,Marketing,Marketing,GG_Marketing
+SERVICE_DESK,Technicien support,IT,IT,GG_IT
+ACCESS_MANAGER,Gestionnaire des habilitations,IT,IT,GG_IT

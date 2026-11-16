@@ -1,0 +1,3 @@
+﻿Rule,GroupA,GroupB,Risk
+SOD-01,GG_APP_GESCOM_CreationFournisseurs,GG_APP_GESCOM_ValidationPaiements,Create a fake supplier and pay it
+SOD-02,GG_APP_PayFlow_Saisie,GG_APP_PayFlow_Validation,Raise a salary or pay a ghost employee
