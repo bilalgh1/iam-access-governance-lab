@@ -1,0 +1,4 @@
+Application,GroupPrefix,OwnerEmployeeID
+GESCOM,GG_APP_GESCOM_,E1002
+PayFlow,GG_APP_PayFlow_,E1005
+CRM,GG_APP_CRM_,E1007

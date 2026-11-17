@@ -13,6 +13,9 @@
       PURGE          deletes disabled accounts after the retention period
       RECONCILE      links an existing account to its HR record (one-time, by name)
       ORPHAN         reports active accounts without an HR record (never deleted)
+    Ad hoc access (grants\access-grants.csv): application access approved through a
+    ticket is added on top of the role, checked (approver = application owner, no
+    self-approval, maximum duration, SoD) and removed automatically when it expires.
     The segregation-of-duties matrix (config\sod-rules.csv) is checked before any
     change: a conflicting change is blocked and escalated.
 
@@ -30,7 +33,9 @@ param(
     [string]$HrFile       = "$PSScriptRoot\..\data\hr-export.csv",
     [string]$ConfigPath   = "$PSScriptRoot\..\config",
     [string]$ReportFolder = "$PSScriptRoot\..\reports",
+    [string]$GrantsFile   = "$PSScriptRoot\..\grants\access-grants.csv",
     [int]$RetentionDays   = 30,
+    [int]$MaxGrantDays    = 90,
     [switch]$Apply
 )
 
@@ -168,6 +173,21 @@ function Invoke-Update($P, $Role, $User) {
     $adhoc   = @($current | Where-Object { $managedGroups -notcontains $_ })
     $target  = @($Role.Groups)
 
+    # Ad hoc grants on top of the role: each one is SoD-checked on its own
+    $grantInfo = @{}
+    $myGrants  = if ($grants.ContainsKey($P.ID)) { $grants[$P.ID] } else { @() }
+    foreach ($gr in $myGrants) {
+        if ($target -contains $gr.Group) { continue }
+        $conflict = @(Test-Sod ($target + $adhoc + $gr.Group))
+        if ($conflict) {
+            Add-Report $P.ID $sam 'GRANT_SOD_CONFLICT' "ticket $($gr.Ticket), $($gr.Group): $($conflict -join ' | ')" 'REJECTED'
+            continue
+        }
+        $target += $gr.Group
+        $grantInfo[$gr.Group] = "ticket $($gr.Ticket), until $($gr.ExpiresOn)"
+    }
+    $expiredInfo = if ($expired.ContainsKey($P.ID)) { $expired[$P.ID] } else { @{} }
+
     # SoD check on the resulting rights: new role groups + ad hoc rights kept
     $sod = @(Test-Sod ($target + $adhoc))
     if ($sod) {
@@ -190,8 +210,8 @@ function Invoke-Update($P, $Role, $User) {
     $action = if ($User.Title -and $User.Title -ne $Role.Title) { 'MOVER' } else { 'UPDATE' }
     $detail = @()
     if ($User.Title -ne $Role.Title) { $detail += "title '$($User.Title)' -> '$($Role.Title)'" }
-    if ($toRemove)  { $detail += "remove: $($toRemove -join ', ')" }
-    if ($toAdd)     { $detail += "add: $($toAdd -join ', ')" }
+    if ($toRemove)  { $detail += 'remove: ' + (($toRemove | ForEach-Object { if ($expiredInfo.ContainsKey($_)) { "$_ ($($expiredInfo[$_]))" } else { $_ } }) -join ', ') }
+    if ($toAdd)     { $detail += 'add: ' + (($toAdd | ForEach-Object { if ($grantInfo.ContainsKey($_)) { "$_ ($($grantInfo[$_]))" } else { $_ } }) -join ', ') }
     if ($ouChange)  { $detail += "move to $($Role.OU)" }
     if ($mgrChange) { $detail += 'manager updated' }
 
@@ -268,6 +288,44 @@ foreach ($row in Import-Csv -Path $HrFile -Encoding UTF8) {
         ManagerID = "$($row.ManagerID)".Trim()
         Start     = $start
         End       = if ($row.EndDate) { $end } else { $null }
+    }
+}
+
+# Ad hoc grants: application access approved by the application owner through a ticket
+$owners  = @(Import-Csv -Path "$ConfigPath\app-owners.csv" -Encoding UTF8)
+$grants  = @{}
+$expired = @{}
+if (Test-Path $GrantsFile) {
+    foreach ($g in Import-Csv -Path $GrantsFile -Encoding UTF8) {
+        $errs    = @()
+        $granted = [datetime]::MinValue
+        $expires = [datetime]::MinValue
+        $owner   = $owners | Where-Object { $g.Group -like "$($_.GroupPrefix)*" } | Select-Object -First 1
+        if (-not $g.Ticket) { $errs += 'missing ticket reference' }
+        if (-not $owner) {
+            $errs += 'not an application group: only application access can be granted on request'
+        } elseif ($managedGroups -notcontains $g.Group) {
+            $errs += 'unknown application group'
+        } elseif ($g.ApproverID -ne $owner.OwnerEmployeeID) {
+            $errs += "approver $($g.ApproverID) is not the owner of $($owner.Application) ($($owner.OwnerEmployeeID))"
+        }
+        if ($g.ApproverID -eq $g.EmployeeID) { $errs += 'self-approval' }
+        if (-not [datetime]::TryParseExact($g.GrantedOn, 'yyyy-MM-dd', $inv, 'None', [ref]$granted)) { $errs += 'invalid GrantedOn' }
+        if (-not [datetime]::TryParseExact($g.ExpiresOn, 'yyyy-MM-dd', $inv, 'None', [ref]$expires)) { $errs += 'invalid ExpiresOn' }
+        elseif ($expires -gt $granted.AddDays($MaxGrantDays)) { $errs += "duration above $MaxGrantDays days" }
+
+        if ($errs) {
+            Add-Report $g.EmployeeID '' 'INVALID_GRANT' "ticket $($g.Ticket), $($g.Group): $($errs -join '; ')" 'REJECTED'
+            continue
+        }
+        if ($expires -lt $today) {
+            if (-not $expired.ContainsKey($g.EmployeeID)) { $expired[$g.EmployeeID] = @{} }
+            $expired[$g.EmployeeID][$g.Group] = "ticket $($g.Ticket) expired on $($g.ExpiresOn)"
+            continue
+        }
+        if ($granted -gt $today) { continue }
+        if (-not $grants.ContainsKey($g.EmployeeID)) { $grants[$g.EmployeeID] = @() }
+        $grants[$g.EmployeeID] += $g
     }
 }
 
