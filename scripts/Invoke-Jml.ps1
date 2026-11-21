@@ -98,8 +98,9 @@ function New-RandomPassword {
 
 function Get-ManagerDN([string]$ManagerID) {
     if (-not $ManagerID) { return $null }
-    $m = Get-ADUser -Filter "EmployeeID -eq '$ManagerID'"
-    if ($m) { $m.DistinguishedName } else { $null }
+    # Business accounts only: administrative accounts carry their owner's employee ID too
+    $m = @(Get-ADUser -Filter "EmployeeID -eq '$ManagerID'" -SearchBase $usersOU)
+    if ($m.Count -eq 1) { $m[0].DistinguishedName } else { $null }
 }
 
 function Get-UserGroups($User) {
@@ -244,6 +245,13 @@ function Invoke-Leaver($P, $User) {
 
     if ($other) {
         Add-Report $P.ID $sam 'MANUAL_ACTION' "Groups outside the JML scope, to be removed by an administrator: $($other -join ', ')" 'PENDING'
+    }
+
+    # Administrative accounts linked to the same person (OU Admins, same employee ID):
+    # outside the delegation of the JML process, they are disabled by a Tier 0 administrator
+    $admins = @(Get-ADUser -Filter "EmployeeID -eq '$($P.ID)'" -SearchBase "OU=Admins,$root" | Where-Object Enabled)
+    if ($admins) {
+        Add-Report $P.ID $sam 'MANUAL_ACTION' "Administrative accounts of this person, to be disabled today by a Tier 0 administrator: $(($admins.SamAccountName) -join ', ')" 'PENDING'
     }
 }
 
